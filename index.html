@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate">
+  <title>Aplikasi Lembur</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; transition: background 0.5s ease; }
+    body.logged-in { background: #e2e8f0; align-items: flex-start; }
+
+    .container { width: 100%; max-width: 520px; background: white; padding: 35px 30px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06); animation: containerAppear 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @keyframes containerAppear { from { opacity: 0; transform: translateY(24px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    .login-wrapper { display: flex; flex-direction: column; align-items: center; }
+    .login-left { margin-bottom: 30px; }
+    .logo-pln { width: 180px; max-width: 100%; object-fit: contain; animation: logoPulse 3s ease-in-out infinite; }
+    @keyframes logoPulse { 0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.02)); } 50% { transform: scale(1.03); filter: drop-shadow(0 10px 15px rgba(37, 99, 235, 0.1)); } }
+
+    .login-right { width: 100%; }
+    .login-right h2 { color: #2563eb; text-align: center; font-size: 34px; margin-bottom: 15px; animation: textSlideIn 0.5s ease forwards; animation-delay: 0.1s; opacity: 0; }
+    .login-right p { text-align: center; color: #64748b; margin-bottom: 25px; line-height: 1.5; animation: textSlideIn 0.5s ease forwards; animation-delay: 0.2s; opacity: 0; }
+    @keyframes textSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .input-group { position: relative; width: 100%; display: flex; align-items: center; margin-bottom: 15px; }
+    .input-icon { position: absolute; left: 16px; color: #94a3b8; font-size: 16px; pointer-events: none; z-index: 10; }
+    input, textarea, select { width: 100%; padding: 14px 14px 14px 46px; margin-bottom: 0; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 15px; transition: all 0.3s ease; }
+    #resetToken { padding: 14px; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18); transform: translateY(-1px); }
+    textarea { resize: none; height: 100px; padding-left: 14px; }
+    button, .btn-primary, #btnLoginAction, #btnMintaTokenAction, #btnResetAction { width: 100%; padding: 14px; border: none; border-radius: 12px; background: #2563eb; color: white; cursor: pointer; font-size: 15px; font-weight: bold; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    button:hover, .btn-primary:hover, #btnLoginAction:hover, #btnMintaTokenAction:hover, #btnResetAction:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3); }
+    button:active, .btn-primary:active, #btnLoginAction:active, #btnMintaTokenAction:active, #btnResetAction:active { transform: translateY(0); box-shadow: 0 2px 5px rgba(37, 99, 235, 0.2); }
+
+    .header-top { display: flex; justify-content: space-between; gap: 15px; align-items: flex-start; animation: textSlideIn 0.4s ease forwards; }
+    .app-title { color: #1e40af; font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+    .app-subtitle { color: #64748b; line-height: 1.4; font-size: 13px; display: inline-block; margin-top: 2px; }
+    .custom-logo-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; }
+    .header-mascot { width: 75px; height: 75px; object-fit: contain; transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; animation: floatMascot 4s ease-in-out infinite; }
+    .header-mascot:hover { transform: scale(1.12) rotate(5deg); filter: drop-shadow(0 8px 15px rgba(15, 23, 42, 0.15)); }
+    .header-mascot:active { transform: scale(0.95) rotate(-3deg); }
+    .header-date-badge { font-size: 10px; font-weight: 700; color: #0284c7; background: #f0f5ff; padding: 4px 8px; border-radius: 6px; border: 1px solid #bfdbfe; white-space: nowrap; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03); }
+    @keyframes floatMascot { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
+
+    .profile-card { display: flex; gap: 18px; align-items: center; background: linear-gradient(135deg, #0284c7, #0369a1); padding: 22px 20px; border-radius: 20px; margin-top: 20px; color: white; box-shadow: 0 10px 20px rgba(2, 132, 199, 0.2); animation: containerAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; overflow: hidden; }
+    .profile-card::after { content: ''; position: absolute; top: -50%; left: -60%; width: 30%; height: 200%; background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.18) 50%, rgba(255, 255, 255, 0) 100%); transform: rotate(25deg); animation: profileShimmer 6s ease-in-out infinite; }
+    @keyframes profileShimmer { 0% { left: -60%; } 15%, 100% { left: 140%; } }
+    
+    /* ========================================= */
+    /* CSS UNTUK COUNTER LEMBUR (LINGKARAN KANAN)*/
+    /* ========================================= */
+    .counter-lembur { position: absolute; top: 18px; right: 18px; width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #ffffff; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; cursor: default; z-index: 10; }
+    .counter-lembur:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    /* ========================================= */
+
+    .profile-left-box { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+    .avatar-container { width: 76px; height: 76px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.3); background: white; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .profile-img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: none; }
+    .avatar-text { font-size: 26px; font-weight: 700; color: #0369a1; text-transform: uppercase; display: block; }
+    .avatar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; }
+    .avatar-overlay span { color: white; font-size: 11px; font-weight: bold; text-align: center; }
+    .avatar-container:hover .avatar-overlay { opacity: 1; }
+    .profile-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .profile-name { font-size: 20px; font-weight: 700; line-height: 1.2; word-wrap: break-word; }
+    .profile-nip { font-size: 13px; opacity: 0.85; font-weight: 500; }
+    .profile-job { font-size: 12px; opacity: 0.95; font-weight: 500; background: rgba(255, 255, 255, 0.15); padding: 4px 10px; border-radius: 6px; margin-top: 4px; line-height: 1.4; display: inline-block; align-self: flex-start; max-width: 100%; word-wrap: break-word; box-sizing: border-box; }
+
+    .landing-nav-container { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 10px 14px; border-radius: 20px; margin: 25px 0 10px 0; border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04); animation: containerAppear 0.5s ease; }
+    .btn-landing-nav-new { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: transparent; border: none; padding: 12px 10px; border-radius: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: none !important; }
+    .nav-icon-wrapper { width: 44px; height: 44px; font-size: 22px; display: flex; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+    .nav-label-text { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; transition: color 0.3s ease; }
+    .btn-landing-menu-new { color: #64748b; }
+    .btn-landing-menu-new .nav-icon-wrapper { background: #f0f5ff; color: #2563eb; }
+    .btn-landing-menu-new:hover { background: rgba(37, 99, 235, 0.04); transform: translateY(-4px); }
+    .btn-landing-menu-new:hover .nav-icon-wrapper { background: #2563eb; color: white; transform: scale(1.06); box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25); }
+    .btn-landing-menu-new:hover .nav-label-text { color: #1e40af; }
+    .btn-landing-logout-new { color: #94a3b8; }
+    .btn-landing-logout-new .nav-icon-wrapper { background: #fff5f5; color: #ef4444; }
+    .btn-landing-logout-new:hover { background: rgba(239, 68, 68, 0.04); transform: translateY(-4px); }
+    .btn-landing-logout-new:hover .nav-icon-wrapper { background: #ef4444; color: white; transform: scale(1.06); box-shadow: 0 6px 14px rgba(239, 68, 68, 0.25); }
+    .btn-landing-logout-new:hover .nav-label-text { color: #1e40af; }
+    .btn-landing-nav-new:active { transform: translateY(-1px) scale(0.96) !important; }
+
+    .menu-grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px; animation: containerAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .menu-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px 10px; font-size: 11px; font-weight: 700; color: #475569; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 6px rgba(15, 23, 42, 0.02); }
+    .menu-box:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.1); border-color: #bfdbfe; }
+    .menu-box:active { transform: scale(0.96); }
+    .menu-icon-wrapper { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 22px; transition: all 0.3s ease; }
+    .theme-blue { background: #eff6ff; color: #2563eb; }
+    .theme-yellow { background: #fefce8; color: #d97706; }
+    .theme-red { background: #fef2f2; color: #ef4444; }
+    .menu-box:hover .menu-icon-wrapper { transform: scale(1.12); }
+    .menu-box:hover .theme-blue { background: #2563eb; color: #ffffff; }
+    .menu-box:hover .theme-yellow { background: #d97706; color: #ffffff; }
+    .menu-box:hover .theme-red { background: #ef4444; color: #ffffff; }
+
+    .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border: 1px solid #e2e8f0; border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 400px; }
+    th { background: #2563eb; color: #ffffff; font-weight: 800 !important; font-size: 11px !important; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 4px !important; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 14px; }
+    .action-btn { width: auto !important; padding: 6px 10px; font-size: 12px; border-radius: 6px; }
+    .success-message { display: none; background: #dcfce7; color: #166534; padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; margin-top: 20px; animation: containerAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+    @media(max-width:768px) {
+      .container { padding: 25px 20px; width: 95% !important; margin: 10px auto; }
+      .app-title { font-size: 24px; }
+      .profile-card { padding: 16px 14px; gap: 12px; }
+      .avatar-container { width: 68px; height: 68px; }
+      .avatar-text { font-size: 22px; }
+      .profile-name { font-size: 16px; }
+      .profile-job { font-size: 11px; padding: 4px 8px; }
+      .counter-lembur { width: 42px; height: 42px; font-size: 14px; top: 15px; right: 15px; } /* Sesuaikan ukuran untuk HP */
+      .landing-nav-container { gap: 12px; margin: 20px 0 5px 0; }
+      .menu-grid-container { gap: 15px; margin-top: 15px; }
+      .menu-icon { font-size: 36px; }
+      .menu-box { font-size: 12px; padding: 5px; }
+    }
+
+    #adminPanel .btn-landing-logout-new:hover { background: transparent !important; }
+    #adminPanel .btn-landing-logout-new { box-shadow: none !important; }
+
+    .btn-landing-nav-new svg { transition: transform 0.3s ease; }
+    .btn-landing-menu-new:hover svg { transform: scale(1.05); }
+    .btn-landing-logout-new:hover svg { transform: translateX(-3px) scale(1.05); }
+
+    .footer-widget-container { display: flex; justify-content: space-between; gap: 15px; padding: 5px 10px; }
+    .widget-box-mini { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .text-right-widget { align-items: flex-end; text-align: right; }
+    .widget-time { font-size: 16px; font-weight: 700; color: #0f172a; letter-spacing: 0.5px; }
+    .widget-status { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; }
+    .status-dot { width: 7px; height: 7px; background-color: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #10b981; animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulseDot { 0%, 100% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); } 50% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } }
+    .widget-quote-title { font-size: 10px; font-weight: 800; color: #0284c7; letter-spacing: 0.5px; }
+    .widget-quote-text { font-size: 11px; font-weight: 600; color: #64748b; font-style: italic; line-height: 1.3; }
+
+    @media(max-width: 480px) {
+      .footer-widget-container { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 5px 15px; }
+      .text-right-widget { display: flex; flex-direction: column; align-items: flex-end; text-align: right; max-width: 60%; }
+    }
+
+    .forgot-password-link { font-size: 12px; font-weight: 600; color: #0284c7; text-decoration: none; transition: color 0.2s ease; }
+    .forgot-password-link:hover { color: #1d4ed8; text-decoration: underline; }
+
+    .btn-kembali-premium { display: inline-flex; align-items: center; gap: 12px; background: #ffffff; color: #334155; border: 1px solid #e2e8f0; padding: 6px 20px 6px 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.8px; border-radius: 50px; cursor: pointer; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03); width: auto !important; }
+    .icon-kembali-wrapper { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #f0f5ff; color: #2563eb; border-radius: 50%; transition: all 0.3s ease; }
+    .btn-kembali-premium:hover { background: #f8fafc; border-color: #cbd5e1; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08); transform: translateY(-2px); color: #1e40af; }
+    .btn-kembali-premium:hover .icon-kembali-wrapper { background: #2563eb; color: #ffffff; transform: translateX(-3px) scale(1.05); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); }
+    .btn-kembali-premium:active { transform: translateY(0) scale(0.96); }
+
+    .form-group-premium { margin-bottom: 16px; text-align: left; }
+    .form-group-premium label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 6px; letter-spacing: 0.3px; }
+    .premium-input { width: 100%; padding: 12px 16px !important; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; color: #1e293b; background: #ffffff; transition: all 0.3s ease; box-sizing: border-box; }
+    .premium-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12); }
+    .read-only-input { background: #f1f5f9; color: #64748b; font-weight: 700; cursor: not-allowed; border-style: dashed; }
+    .btn-submit-premium { width: 100%; padding: 14px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 12px; font-size: 13px; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; box-shadow: 0 6px 15px rgba(37, 99, 235, 0.25); }
+    .btn-submit-premium:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35); }
+    .btn-submit-premium:active { transform: translateY(0) scale(0.98); }
+
+    /* ========================================= */
+    /* PENGATURAN LEBAR TABEL SECARA PERSENTASE  */
+    /* ========================================= */
+    .table-premium-container { background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px rgba(15, 23, 42, 0.02); width: 100%; }
+    
+    .table-premium { 
+        width: 100%; 
+        table-layout: fixed; 
+        border-collapse: collapse; 
+    }
+    
+    .table-premium td { 
+      padding: 8px 4px; 
+      vertical-align: middle !important; 
+      text-align: center !important; 
+      font-family: 'Segoe UI', Arial, sans-serif !important; 
+      font-size: 11px !important; 
+      font-weight: 500 !important; 
+      color: #1e293b !important; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
+
+    .table-premium th { 
+      padding: 10px 4px !important; 
+      vertical-align: middle !important; 
+      text-align: center !important; 
+      font-family: 'Segoe UI', Arial, sans-serif !important; 
+      font-size: 11px !important; 
+      font-weight: 900 !important; 
+      color: #ffffff !important;   
+      text-transform: uppercase;   
+      background-color: #2563eb !important;
+    }
+
+    /* KHUSUS TABEL RIWAYAT & LEMBUR >60 */
+    #riwayatSection .table-premium th:nth-child(1), #riwayatSection .table-premium td:nth-child(1),
+    #lembur60Section .table-premium th:nth-child(1), #lembur60Section .table-premium td:nth-child(1) { width: 8%; }
+    #riwayatSection .table-premium th:nth-child(2), #riwayatSection .table-premium td:nth-child(2),
+    #lembur60Section .table-premium th:nth-child(2), #lembur60Section .table-premium td:nth-child(2) { width: 22%; }
+    #riwayatSection .table-premium th:nth-child(3), #riwayatSection .table-premium td:nth-child(3),
+    #lembur60Section .table-premium th:nth-child(3), #lembur60Section .table-premium td:nth-child(3) { width: 20%; }
+    #riwayatSection .table-premium th:nth-child(4), #riwayatSection .table-premium td:nth-child(4),
+    #lembur60Section .table-premium th:nth-child(4), #lembur60Section .table-premium td:nth-child(4) { width: 13%; }
+    #riwayatSection .table-premium th:nth-child(5), #riwayatSection .table-premium td:nth-child(5),
+    #lembur60Section .table-premium th:nth-child(5), #lembur60Section .table-premium td:nth-child(5) { width: 13%; }
+    #riwayatSection .table-premium th:nth-child(6), #riwayatSection .table-premium td:nth-child(6),
+    #lembur60Section .table-premium th:nth-child(6), #lembur60Section .table-premium td:nth-child(6) { width: 14%; }
+    #riwayatSection .table-premium th:nth-child(7), #riwayatSection .table-premium td:nth-child(7),
+    #lembur60Section .table-premium th:nth-child(7), #lembur60Section .table-premium td:nth-child(7) { width: 10%; }
+
+    /* KHUSUS TABEL TERJADWAL & TIDAK TERJADWAL */
+    #terjadwalSection .table-premium th:nth-child(1), #terjadwalSection .table-premium td:nth-child(1),
+    #tidakTerjadwalSection .table-premium th:nth-child(1), #tidakTerjadwalSection .table-premium td:nth-child(1) { width: 7%; }
+    #terjadwalSection .table-premium th:nth-child(2), #terjadwalSection .table-premium td:nth-child(2),
+    #tidakTerjadwalSection .table-premium th:nth-child(2), #tidakTerjadwalSection .table-premium td:nth-child(2) { width: 22%; }
+    #terjadwalSection .table-premium th:nth-child(3), #terjadwalSection .table-premium td:nth-child(3),
+    #tidakTerjadwalSection .table-premium th:nth-child(3), #tidakTerjadwalSection .table-premium td:nth-child(3) { width: 11%; }
+    #terjadwalSection .table-premium th:nth-child(4), #terjadwalSection .table-premium td:nth-child(4),
+    #tidakTerjadwalSection .table-premium th:nth-child(4), #tidakTerjadwalSection .table-premium td:nth-child(4) { width: 11%; }
+    #terjadwalSection .table-premium th:nth-child(5), #terjadwalSection .table-premium td:nth-child(5),
+    #tidakTerjadwalSection .table-premium th:nth-child(5), #tidakTerjadwalSection .table-premium td:nth-child(5) { width: 11%; }
+    #terjadwalSection .table-premium th:nth-child(6), #terjadwalSection .table-premium td:nth-child(6),
+    #tidakTerjadwalSection .table-premium th:nth-child(6), #tidakTerjadwalSection .table-premium td:nth-child(6) { width: 11%; }
+    
+    /* Kolom TOTAL */
+    #terjadwalSection .table-premium th:nth-child(7), #tidakTerjadwalSection .table-premium th:nth-child(7) { width: 15%; color: #ffffff !important; }
+    #terjadwalSection .table-premium td:nth-child(7), #tidakTerjadwalSection .table-premium td:nth-child(7) { width: 15%; }
+
+    /* Kolom COND */
+    #terjadwalSection .table-premium th:nth-child(8), #terjadwalSection .table-premium td:nth-child(8),
+    #tidakTerjadwalSection .table-premium th:nth-child(8), #tidakTerjadwalSection .table-premium td:nth-child(8) { width: 12%; }
+
+    .jam-chip { font-family: monospace; font-weight: 700; color: #1e293b; background: #f8fafc; padding: 2px 4px; border: 1px solid #e2e8f0; border-radius: 4px; display: inline-block; font-size: 10px; }
+    .status-badge { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-size: 12px; line-height: 1; margin: 0 auto; position: relative; padding-right: 1px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+    .status-pending { background-color: #fffbeb; color: #d97706; box-shadow: 0 0 0 2px #fde68a, 0 4px 6px rgba(217, 119, 6, 0.15); animation: pulsePending 2s infinite; }
+    .status-approved { background-color: #f0fdf4; color: #15803d; box-shadow: 0 0 0 2px #bbf7d0, 0 4px 6px rgba(21, 128, 61, 0.15); }
+    .status-rejected { background-color: #fef2f2; color: #b91c1c; box-shadow: 0 0 0 2px #fecaca, 0 4px 6px rgba(185, 28, 28, 0.15); }
+    .status-badge:hover { transform: scale(1.15); box-shadow: 0 0 0 2px currentColor, 0 6px 10px rgba(0, 0, 0, 0.15); }
+    .status-approved i { margin-left: -0.5px; padding-top: 1px; }
+    .status-pending i { margin-left: -4px; padding-top: 1.5px; }
+    .status-rejected i { margin-left: 0px; padding-top: 1px; }
+
+    @keyframes pulsePending { 0% { box-shadow: 0 0 0 0px rgba(253, 230, 138, 0.8), 0 4px 6px rgba(217, 119, 6, 0.15); } 70% { box-shadow: 0 0 0 6px rgba(253, 230, 138, 0), 0 4px 6px rgba(217, 119, 6, 0.15); } 100% { box-shadow: 0 0 0 0px rgba(253, 230, 138, 0), 0 4px 6px rgba(217, 119, 6, 0.15); } }
+
+    .id-card-premium { background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 24px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.03); position: relative; overflow: hidden; }
+    .id-card-premium::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #2563eb, #38bdf8); }
+    .info-row { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px dashed #cbd5e1; }
+    .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .info-row:first-child { padding-top: 0; }
+    .info-icon { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background: #f0f9ff; color: #0284c7; border-radius: 12px; font-size: 18px; flex-shrink: 0; transition: transform 0.3s ease; }
+    .info-row:hover .info-icon { transform: scale(1.1); background: #e0f2fe; }
+    .info-data { display: flex; flex-direction: column; gap: 4px; }
+    .info-label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-value { font-size: 15px; font-weight: 700; color: #0f172a; }
+
+    .tip-box { margin-top: 20px; background: #fffbeb; border: 1px solid #fde68a; padding: 14px 16px; border-radius: 12px; display: flex; gap: 12px; align-items: flex-start; font-size: 12px; color: #92400e; line-height: 1.5; box-shadow: 0 4px 6px rgba(217, 119, 6, 0.05); }
+    .loading-spinner { display: flex; justify-content: center; padding: 30px; gap: 10px; color: #2563eb; }
+    .spinner-icon { width: 24px; height: 24px; border: 3px solid #dbeafe; border-top: 3px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    #footerContainer { border-top: none !important; padding-top: 15px; background: #ffffff; }
+
+    .btn-refresh-premium { background: #f0f5ff; color: #2563eb; border: 1px solid #bfdbfe; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 2px 6px rgba(37, 99, 235, 0.08); flex-shrink: 0; }
+    .btn-refresh-premium i { font-size: 14px; transition: transform 0.4s ease; }
+    .btn-refresh-premium:hover { background: #2563eb; color: #ffffff; border-color: #2563eb; box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25); transform: translateY(-2px); }
+    .btn-refresh-premium:hover i { transform: rotate(180deg); }
+    .btn-refresh-premium:active { transform: translateY(0) scale(0.95); }
+
+    .search-input { width: 100%; padding: 12px 16px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; }
+    .table-scroll-wrapper { max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 12px; }
+    .table-premium thead th { position: sticky; top: 0; z-index: 1; background-color: #2563eb; }
+</style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+<div class="container" style="display: flex; flex-direction: column;">
+  <div class="content-wrapper">
+
+    <div id="headerApp" style="display:none;">
+      <div class="header-top">
+        <div>
+          <h2 class="app-title">Aplikasi Lembur</h2>
+          <small class="app-subtitle">
+            PT. PLN Indonesia Power Services<br>
+            UBP Pangkalan Susu 1-4
+          </small>
+        </div>
+        <div class="custom-logo-placeholder">
+          <img src="https://lh3.googleusercontent.com/d/1U6y2H6Blys1Sn2OOe_bEPJ-QcUKZmUFe" alt="Mascot PLN" class="header-mascot">
+          <div id="headerTanggal" class="header-date-badge">Memuat...</div>
+        </div>
+      </div>
+
+      <div class="profile-card">
+        <div class="counter-lembur" id="counterTotalJam" title="Total Jam Normal">0</div>
+        
+        <div class="profile-left-box">
+          <label for="fileInputFoto" class="avatar-container" id="avatarContainerBox">
+            <img id="fotoPegawai" src="" class="profile-img" alt="Foto Profil" onerror="handleFotoError()">
+            <span id="fotoInisial" class="avatar-text">--</span>
+            <div class="avatar-overlay" id="overlayLoadingText"><span>Ganti Foto</span></div>
+          </label>
+          <input type="file" id="fileInputFoto" accept="image/*" hidden onchange="uploadFoto()">
+        </div>
+        <div class="profile-info">
+          <div id="namaPegawai" class="profile-name">Nama Pegawai</div>
+          <div id="nipPegawai" class="profile-nip">NIP: -</div>
+          <div id="jabatanPegawai" class="profile-job">Jabatan Pegawai</div>
+        </div>
+      </div>
+      
+      <div id="landingNavigation" class="landing-nav-container">
+        <button class="btn-landing-nav-new btn-landing-menu-new" onclick="bukaGridMenu()">
+          <div class="nav-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:22px; height:22px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25A2.25 2.25 0 0 1 13.5 8V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+            </svg>
+          </div>
+          <span class="nav-label-text">BUKA MENU</span>
+        </button>
+        <button class="btn-landing-nav-new btn-landing-logout-new" onclick="logout()">
+          <div class="nav-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:22px; height:22px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+            </svg>
+          </div>
+          <span class="nav-label-text">LOGOUT</span>
+        </button>
+      </div>
+      <hr id="separatorLine" style="margin:20px 0;border:none;border-top:1px solid #e2e8f0;">
+    </div>
+
+    <div id="loginPage">
+      <div class="login-wrapper">
+        <div class="login-left"><img src="https://lh3.googleusercontent.com/d/1rA5RfGM8H6qXcGKWLIl3IOlfprRwsvWV" alt="Logo" class="logo-pln"></div>
+        <div class="login-right">
+          <h2>Selamat Datang</h2>
+          <p>Silakan login untuk akses Sistem Lembur Pegawai</p>
+          <form id="formLoginUtama" onsubmit="event.preventDefault(); login();">
+            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="username" placeholder="Username" required></div>
+            <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="password" placeholder="Password" required></div>
+            <div style="display: flex; justify-content: flex-end; width: 100%; margin: -5px 0 15px 0; padding-right: 2px;">
+              <a href="#" onclick="handleLupaPassword(event)" class="forgot-password-link">Lupa Password?</a>
+            </div>
+            <button type="submit" id="btnLoginAction">Login</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="resetPage" style="display: none;">
+      <div class="login-wrapper">
+        <div class="login-left"><img src="https://lh3.googleusercontent.com/d/1rA5RfGM8H6qXcGKWLIl3IOlfprRwsvWV" alt="Logo" class="logo-pln"></div>
+        <div class="login-right">
+          <h2>Reset Password</h2>
+          <p id="resetInstruction">Masukkan Username Anda untuk meminta kode konfirmasi.</p>
+          <div id="stepMintaToken" style="width: 100%;">
+            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="resetUsername" placeholder="Masukkan Username Anda"></div>
+            <button id="btnMintaTokenAction" onclick="mintaKodeToken()">Kirim Kode Konfirmasi</button>
+          </div>
+          <div id="stepVerifikasiToken" style="display: none; width: 100%;">
+            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 15px; text-align: left;">✓ Kode konfirmasi telah dikirim ke email terdaftar Anda.</div>
+            <div class="input-group"><i class="fas fa-key input-icon"></i><input type="text" id="resetToken" placeholder="Masukkan 6 Digit Kode Token" maxlength="6" style="text-align: center; font-weight: bold;"></div>
+            <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="resetNewPassword" placeholder="Password Baru"></div>
+            <button id="btnResetAction" onclick="prosesResetPassword()">Update Password</button>
+          </div>
+          <div style="display: flex; justify-content: center; width: 100%; margin-top: 15px;">
+            <a href="#" onclick="kembaliKeLogin(event)" class="forgot-password-link" style="font-size: 13px;">← Kembali ke Login</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="menuUser" style="display:none; margin-bottom:20px;">
+      <div class="menu-grid-container">
+        <div class="menu-box" onclick="showInfoPegawai()">
+          <div class="menu-icon-wrapper theme-blue"><i class="fas fa-id-badge"></i></div>
+          <span>INFORMASI PEGAWAI</span>
+        </div>
+        <div class="menu-box" onclick="showFormLembur()">
+          <div class="menu-icon-wrapper theme-blue"><i class="fas fa-file-signature"></i></div>
+          <span>FORM LEMBUR</span>
+        </div>
+        <div class="menu-box" onclick="showRiwayat()">
+          <div class="menu-icon-wrapper theme-blue"><i class="fas fa-chart-line"></i></div>
+          <span>HISTORY</span>
+        </div>
+        <div class="menu-box" onclick="showLembur60()">
+          <div class="menu-icon-wrapper theme-red"><i class="fas fa-triangle-exclamation"></i></div>
+          <span>LEMBUR >60</span>
+        </div>
+        <div class="menu-box" onclick="showTerjadwal()">
+          <div class="menu-icon-wrapper theme-blue"><i class="fas fa-calendar-check"></i></div>
+          <span>TERJADWAL</span>
+        </div>
+        <div class="menu-box" onclick="showTidakTerjadwal()">
+          <div class="menu-icon-wrapper theme-yellow"><i class="fas fa-bolt"></i></div>
+          <span>TIDAK TERJADWAL</span>
+        </div>
+      </div>
+    </div>
+    <div id="backButton" style="display:none; margin-bottom: 25px; margin-top: 5px; text-align: right;">
+      <button class="btn-kembali-premium" onclick="kembaliMenu()">
+        <div class="icon-kembali-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 16px; height: 16px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+        </div>
+        <span>KEMBALI</span>
+      </button>
+    </div>
+
+    <div id="infoPegawaiSection" style="display:none;">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+        <div class="menu-icon-wrapper theme-blue" style="width: 42px; height: 42px; font-size: 18px;"><i class="fas fa-id-badge"></i></div>
+        <div>
+          <h2 style="color:#1e40af; margin: 0; font-size: 20px; font-weight: 800;">Informasi Pegawai</h2>
+          <span style="font-size: 11px; color: #64748b; font-weight: 600;">Data identitas digital Anda</span>
+        </div>
+      </div>
+      <div class="id-card-premium">
+        <div class="info-row">
+          <div class="info-icon"><i class="fas fa-user-tie"></i></div>
+          <div class="info-data">
+            <span class="info-label">Nama Lengkap</span>
+            <span class="info-value" id="infoNama">-</span>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon"><i class="fas fa-fingerprint"></i></div>
+          <div class="info-data">
+            <span class="info-label">NIP / Username</span>
+            <span class="info-value" id="infoNip">-</span>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon"><i class="fas fa-envelope"></i></div>
+          <div class="info-data">
+            <span class="info-label">Alamat Email</span>
+            <span class="info-value" id="infoEmail">-</span>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon"><i class="fas fa-briefcase"></i></div>
+          <div class="info-data">
+            <span class="info-label">Jabatan Resmi</span>
+            <span class="info-value" id="infoJabatan">-</span>
+          </div>
+        </div>
+      </div>
+      <div class="tip-box">
+        <i class="fas fa-lightbulb" style="color: #d97706; margin-top: 2px; font-size: 16px;"></i>
+        <div><strong>Info:</strong> Untuk memperbarui foto profil, Anda bisa langsung menekan area lingkaran foto pada Halaman Utama.</div>
+      </div>
+    </div>
+
+    <div id="formLembur" style="display:none;">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+        <div class="menu-icon-wrapper theme-blue" style="width: 42px; height: 42px; font-size: 18px;"><i class="fas fa-file-signature"></i></div>
+        <div><h2 style="color:#1e40af; margin: 0; font-size: 20px; font-weight: 800;">Pengajuan Lembur</h2></div>
+      </div>
+      <div style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0;">
+        <div class="form-group-premium">
+          <label>NIP PEGAWAI</label>
+          <input type="text" id="form_nip" class="premium-input read-only-input" readonly>
+        </div>
+        <div class="form-group-premium">
+          <label>NAMA PEGAWAI</label>
+          <input type="text" id="form_nama" class="premium-input read-only-input" readonly>
+        </div>
+        <div class="form-group-premium">
+          <label>TANGGAL LEMBUR</label>
+          <input type="date" id="tanggal" class="premium-input">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group-premium">
+            <label>JAM MASUK</label>
+            <input type="time" id="jam_masuk" class="premium-input" onchange="hitungSemua()">
+          </div>
+          <div class="form-group-premium">
+            <label>JAM KELUAR</label>
+            <input type="time" id="jam_keluar" class="premium-input" onchange="hitungSemua()">
+          </div>
+        </div>
+        <div class="form-group-premium">
+          <label>KATEGORI LEMBUR</label>
+          <select id="kategori_lembur" class="premium-input" onchange="hitungSemua()">
+            <option value="HARI BIASA">HARI BIASA</option>
+            <option value="HARI LIBUR">HARI LIBUR</option>
+          </select>
+        </div>
+        <div class="form-group-premium">
+          <label>JENIS LEMBUR</label>
+          <select id="jenis_lembur" class="premium-input" onchange="hitungSemua()">
+            <option value="ADMIN/HAR">ADMIN/HAR</option>
+            <option value="OPERATOR">OPERATOR</option>
+          </select>
+        </div>
+        <div class="form-group-premium" style="margin-top: 10px;">
+          <label>TOTAL JAM KERJA</label>
+          <input type="text" id="total_jam_kerja" class="premium-input read-only-input" readonly>
+        </div>
+        <div class="form-group-premium">
+          <label>TOTAL JAM EFEKTIF (Kelipatan 5 Jam -1)</label>
+          <input type="text" id="total_jam_efektif" class="premium-input read-only-input" readonly style="color: #2563eb; font-weight: 800;">
+        </div>
+        <div class="form-group-premium">
+          <label>JADWAL (TERENCANA?)</label>
+          <select id="jadwal_lembur" class="premium-input">
+            <option value="IYA">IYA (Terjadwal)</option>
+            <option value="TIDAK">TIDAK (Tidak Terjadwal)</option>
+          </select>
+        </div>
+        <div class="form-group-premium" style="margin-top: 15px;">
+          <label>ISTIRAHAT</label>
+          <input type="text" id="val_istirahat" class="premium-input read-only-input" readonly placeholder="-">
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+          <div class="form-group-premium" style="margin-bottom: 0;">
+            <label>x1.5</label>
+            <input type="text" id="val_x15" class="premium-input read-only-input" readonly placeholder="-" style="text-align: center;">
+          </div>
+          <div class="form-group-premium" style="margin-bottom: 0;">
+            <label>x2</label>
+            <input type="text" id="val_x2" class="premium-input read-only-input" readonly placeholder="-" style="text-align: center;">
+          </div>
+          <div class="form-group-premium" style="margin-bottom: 0;">
+            <label>x3</label>
+            <input type="text" id="val_x3" class="premium-input read-only-input" readonly placeholder="-" style="text-align: center;">
+          </div>
+          <div class="form-group-premium" style="margin-bottom: 0;">
+            <label>x4</label>
+            <input type="text" id="val_x4" class="premium-input read-only-input" readonly placeholder="-" style="text-align: center;">
+          </div>
+        </div>
+        <div class="form-group-premium">
+          <label>DESKRIPSI PEKERJAAN</label>
+          <textarea id="deskripsi" class="premium-input" placeholder="Masukkan deskripsi (Maks 35 Karakter)..." maxlength="35" oninput="this.value = this.value.replace(/[^a-zA-Z0-9 ]/g, '');"></textarea>
+        </div>
+        <button onclick="submitData()" class="btn-submit-premium">
+          <i class="fas fa-paper-plane"></i> KIRIM PENGAJUAN
+        </button>
+      </div>
+    </div>
+    <div id="successMessage" class="success-message">✅ Lemburan Berhasil Dikirim</div>
+
+    <div id="riwayatSection" style="display:none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="menu-icon-wrapper theme-blue" style="width: 42px; height: 42px; font-size: 18px;"><i class="fas fa-chart-line"></i></div>
+          <div>
+            <h2 style="color:#1e40af; margin: 0; font-size: 20px; font-weight: 800;">Riwayat Lembur</h2>
+            <span style="font-size: 11px; color: #64748b; font-weight: 600;">Daftar pengajuan dan status lembur Anda</span>
+          </div>
+        </div>
+        <button class="btn-refresh-premium" onclick="loadRiwayat()" title="Perbarui Data"><i class="fas fa-sync-alt"></i></button>
+      </div>
+      <input type="text" id="searchRiwayat" class="search-input" placeholder="🔍 Cari tanggal, kategori, atau status..." onkeyup="filterTabel('riwayatBody', 'searchRiwayat')">
+      <div id="riwayatLoading" class="loading-spinner" style="display: none;">
+        <div class="spinner-icon"></div><span style="font-size: 13px; font-weight: 700; color: #475569;">Sedang memuat data...</span>
+      </div>
+      <div class="table-premium-container">
+        <div class="table-scroll-wrapper">
+          <table class="table-premium">
+            <thead>
+              <tr><th>NO</th><th>TANGGAL</th><th>KATEGORI</th><th>MASUK</th><th>KELUAR</th><th>TOTAL</th><th>COND</th></tr>
+            </thead>
+            <tbody id="riwayatBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="lembur60Section" style="display:none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="menu-icon-wrapper theme-red" style="width: 42px; height: 42px; font-size: 18px;"><i class="fas fa-triangle-exclamation"></i></div>
+          <div>
+            <h2 style="color:#ef4444; margin: 0; font-size: 20px; font-weight: 800;">Lembur > 60 Jam</h2>
+            <span style="font-size: 11px; color: #64748b; font-weight: 600;">Monitoring akumulasi lembur kritis</span>
+          </div>
+        </div>
+        <button class="btn-refresh-premium" onclick="loadRiwayat60()" title="Perbarui Data"><i class="fas fa-sync-alt"></i></button>
+      </div>
+      <div id="riwayatLoading60" class="loading-spinner" style="display: none;">
+        <div class="spinner-icon"></div><span style="font-size: 13px; font-weight: 700; color: #475569;">Sedang memuat data...</span>
+      </div>
+      <div class="table-premium-container">
+        <div class="table-scroll-wrapper">
+          <table class="table-premium">
+            <thead>
+              <tr><th>NO</th><th>TANGGAL</th><th>KATEGORI</th><th>MASUK</th><th>KELUAR</th><th>TOTAL</th><th>COND</th></tr>
+            </thead>
+            <tbody id="riwayatBody60"></tbody>
+          </table>
+        </div>
+        <div id="totalLemburContainer60" style="padding: 12px 15px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; display: flex; justify-content: space-between; align-items: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+          <span style="font-size: 11px; font-weight: 800; color: #475569; letter-spacing: 0.5px;">TOTAL JAM LEMBUR (>60)</span>
+          <span id="totalJamLembur60" style="font-size: 14px; font-weight: 800; color: #ef4444;">0 Jam</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="terjadwalSection" style="display:none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="menu-icon-wrapper theme-blue" style="width: 42px; height: 42px; font-size: 18px;"><i class="fas fa-calendar-check"></i></div>
+          <div>
+            <h2 style="color:#1e40af; margin: 0; font-size: 20px; font-weight: 800;">Lembur Terjadwal</h2>
+            <span style="font-size: 11px; color: #64748b; font-weight: 600;">Daftar lembur yang disetujui (Terjadwal)</span>
+          </div>
+        </div>
+        <button class="btn-refresh-premium" onclick="loadTerjadwal()" title="Perbarui Data"><i class="fas fa-sync-alt"></i></button>
+      </div>
+      <input type="text" id="searchTerjadwal" class="search-input" placeholder="🔍 Cari tanggal..." onkeyup="filterTabel('terjadwalBody', 'searchTerjadwal')">
+      <div id="terjadwalLoading" class="loading-spinner" style="display: none;">
+        <div class="spinner-icon"></div><span style="font-size: 13px; font-weight: 700; color: #475569;">Sedang memuat data...</span>
+      </div>
+      <div class="table-premium-container">
+        <div class="table-scroll-wrapper">
+          <table class="table-premium">
+            <thead>
+              <tr><th>NO</th><th>TANGGAL</th><th>x1.5</th><th>x2</th><th>x3</th><th>x4</th><th>TOTAL</th><th>COND</th></tr>
+            </thead>
+            <tbody id="terjadwalBody"></tbody>
+          </table>
+        </div>
+        <div style="padding: 12px 15px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; display: flex; justify-content: space-between; align-items: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+          <span style="font-size: 11px; font-weight: 800; color: #475569; letter-spacing: 0.5px;">TOTAL JAM KESELURUHAN</span>
+          <span id="grandTotalTerjadwal" style="font-size: 14px; font-weight: 800; color: #2563eb;">0 Jam</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="tidakTerjadwalSection" style="display:none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="menu-icon-wrapper theme-yellow" style="width: 42px; height: 42px; font-size: 18px;"><i class="fas fa-bolt"></i></div>
+          <div>
+            <h2 style="color:#d97706; margin: 0; font-size: 20px; font-weight: 800;">Tidak Terjadwal</h2>
+            <span style="font-size: 11px; color: #64748b; font-weight: 600;">Daftar lembur mendadak/gangguan</span>
+          </div>
+        </div>
+        <button class="btn-refresh-premium" onclick="loadTidakTerjadwal()" title="Perbarui Data"><i class="fas fa-sync-alt"></i></button>
+      </div>
+      <input type="text" id="searchTidakTerjadwal" class="search-input" placeholder="🔍 Cari tanggal..." onkeyup="filterTabel('tidakTerjadwalBody', 'searchTidakTerjadwal')">
+      <div id="tidakTerjadwalLoading" class="loading-spinner" style="display: none;">
+        <div class="spinner-icon"></div><span style="font-size: 13px; font-weight: 700; color: #475569;">Sedang memuat data...</span>
+      </div>
+      <div class="table-premium-container">
+        <div class="table-scroll-wrapper">
+          <table class="table-premium">
+            <thead>
+              <tr><th>NO</th><th>TANGGAL</th><th>x1.5</th><th>x2</th><th>x3</th><th>x4</th><th>TOTAL</th><th>COND</th></tr>
+            </thead>
+            <tbody id="tidakTerjadwalBody"></tbody>
+          </table>
+        </div>
+        <div style="padding: 12px 15px; background: #ffffff; border: 1px solid #e2e8f0; border-top: none; display: flex; justify-content: space-between; align-items: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+          <span style="font-size: 11px; font-weight: 800; color: #475569; letter-spacing: 0.5px;">TOTAL JAM KESELURUHAN</span>
+          <span id="grandTotalTidakTerjadwal" style="font-size: 14px; font-weight: 800; color: #d97706;">0 Jam</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="adminPanel" style="display:none; margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 10px;">
+        <h2 style="color: #1e40af; margin: 0; font-size: 24px; font-weight: 700;">Dashboard Admin</h2>
+        <button class="btn-landing-nav-new btn-landing-logout-new" onclick="logout()" style="flex: none; padding: 4px 10px; background: transparent;">
+          <div class="nav-icon-wrapper" style="width: 36px; height: 36px; background: #fff5f5;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#ef4444" style="width:18px; height:18px;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" /></svg>
+          </div>
+          <span class="nav-label-text" style="font-size: 10px; color: #94a3b8;">LOGOUT</span>
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead><tr><th>Nama</th><th>Tanggal</th><th>Total</th><th>COND</th><th>Aksi</th></tr></thead>
+          <tbody id="adminBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="footerContainer" class="footer-widget-container" style="display: flex; margin-top: 40px;">
+    <div class="widget-box-mini" style="display: flex; flex-direction: column; gap: 4px; padding-left: 5px;">
+      <div class="widget-time" id="digitalClock">00:00:00 WIB</div>
+      <div class="widget-status"><span class="status-dot"></span><span style="color: #64748b;">Sistem Terhubung</span></div>
+    </div>
+    <div class="widget-box-mini text-right-widget">
+      <div class="widget-quote-title">💡 PENGINGAT K3</div>
+      <div class="widget-quote-text">"Utamakan Keselamatan dan Kesehatan Kerja!"</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysJNO_gLUx7e9uTGUBJ1UPV3oqslN7rTr-Q1MA5U67nZimttgi1GXNKnjjA4a-Hpxg/exec";
+  let namaUser = "";
+  let usernameLogin = "";
+
+  // Helper Jam Digital
+  function jalankanJamDigital() {
+    const elemenJam = document.getElementById("digitalClock");
+    if (!elemenJam) return;
+    setInterval(() => {
+      const sekarang = new Date();
+      const jam = String(sekarang.getHours()).padStart(2, '0');
+      const menit = String(sekarang.getMinutes()).padStart(2, '0');
+      const detik = String(sekarang.getSeconds()).padStart(2, '0');
+      const opsiZona = { timeZoneName: 'short' };
+      const bagianFormat = new Intl.DateTimeFormat('id-ID', opsiZona).formatToParts(sekarang);
+      const namaZona = bagianFormat.find(part => part.type === 'timeZoneName').value;
+      elemenJam.textContent = `${jam}:${menit}:${detik} ${namaZona}`;
+    }, 1000);
+  }
+  document.addEventListener("DOMContentLoaded", jalankanJamDigital);
+
+  // Helper Tanggal Header
+  function jalankanTanggalHeader() {
+    const elTanggal = document.getElementById("headerTanggal");
+    if (!elTanggal) return;
+    const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const sekarang = new Date();
+    elTanggal.textContent = `${hari[sekarang.getDay()]}, ${String(sekarang.getDate()).padStart(2, '0')} ${bulan[sekarang.getMonth()]} ${sekarang.getFullYear()}`;
+  }
+  document.addEventListener("DOMContentLoaded", jalankanTanggalHeader);
+
+  // Helper Filter Tabel Universal
+  function filterTabel(bodyId, inputId) {
+    const filter = document.getElementById(inputId).value.toUpperCase();
+    const tr = document.getElementById(bodyId).getElementsByTagName("tr");
+    for (let i = 0; i < tr.length; i++) {
+      const text = tr[i].textContent || tr[i].innerText;
+      tr[i].style.display = text.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+    }
+  }
+
+  // Formatting Helper
+  const formatJam = (val) => val ? val : "-";
+  const formatAngka = (val) => { const num = parseFloat(val) || 0; return (num % 1 === 0) ? num.toString() : num.toFixed(1); };
+  const formatStatus = (status) => {
+    const s = String(status).trim().toLowerCase();
+    if (s === 'approved') return `<span class="status-badge status-approved" title="Approved"><i class="fas fa-check"></i></span>`;
+    if (s === 'rejected') return `<span class="status-badge status-rejected" title="Rejected"><i class="fas fa-times"></i></span>`;
+    return `<span class="status-badge status-pending" title="Pending"><i class="fas fa-clock"></i></span>`;
+  };
+
+  // Reset & Login Logics
+  function handleLupaPassword(event) { if (event) event.preventDefault(); document.getElementById("loginPage").style.display = "none"; document.getElementById("resetPage").style.display = "block"; }
+  function kembaliKeLogin(event) { if (event) event.preventDefault(); document.getElementById("resetPage").style.display = "none"; document.getElementById("loginPage").style.display = "block"; document.getElementById("stepMintaToken").style.display = "block"; document.getElementById("stepVerifikasiToken").style.display = "none"; document.getElementById("resetUsername").value = ""; document.getElementById("resetToken").value = ""; document.getElementById("resetNewPassword").value = ""; }
+  function mintaKodeToken() { const username = document.getElementById("resetUsername").value.trim(); if (!username) { alert("Harap masukkan Username Anda!"); return; } const btn = document.getElementById("btnMintaTokenAction"); btn.disabled = true; btn.textContent = "Memproses & Mengirim..."; const timeoutForce = setTimeout(() => { if (btn.textContent === "Memproses & Mengirim...") { btn.disabled = false; btn.textContent = "Kirim Kode Konfirmasi"; alert("Koneksi server tidak merespons. Silakan coba klik kembali."); } }, 10000); google.script.run.withSuccessHandler(function(respon) { clearTimeout(timeoutForce); btn.disabled = false; btn.textContent = "Kirim Kode Konfirmasi"; if (respon.sukses) { document.getElementById("stepMintaToken").style.display = "none"; document.getElementById("stepVerifikasiToken").style.display = "block"; document.getElementById("resetInstruction").textContent = "Masukkan kode token yang diterima di email dan tentukan password baru."; } else { alert("Gagal: " + respon.pesan); } }).withFailureHandler(function(error) { clearTimeout(timeoutForce); btn.disabled = false; btn.textContent = "Kirim Kode Konfirmasi"; alert("Terjadi kesalahan sistem: " + error.message); }).kirimTokenReset(username); }
+  function prosesResetPassword() { const username = document.getElementById("resetUsername").value.trim(); const token = document.getElementById("resetToken").value.trim(); const passwordBaru = document.getElementById("resetNewPassword").value.trim(); if (!token || !passwordBaru) { alert("Harap isi Kode Token dan Password Baru Anda!"); return; } const btn = document.getElementById("btnResetAction"); btn.disabled = true; btn.textContent = "Mengupdate Password..."; google.script.run.withSuccessHandler(function(respon) { btn.disabled = false; btn.textContent = "Update Password"; alert(respon.pesan); if (respon.sukses) { kembaliKeLogin(); } }).withFailureHandler(function(error) { btn.disabled = false; btn.textContent = "Update Password"; alert("Terjadi kesalahan sistem: " + error.message); }).verifikasiDanUpdatePassword(username, token, passwordBaru); }
+
+  function handleFotoError() { document.getElementById("fotoPegawai").style.display = "none"; document.getElementById("fotoInisial").style.display = "block"; }
+  function cleanDriveUrl(url) { if (!url || url === "" || url === "null" || url === "undefined") return ""; let strUrl = String(url); if (strUrl.includes("drive.google.com")) { let match = strUrl.match(/\/d\/([^/]+)/) || strUrl.match(/id=([^&]+)/); if (match && match[1]) { return "https://docs.google.com/uc?export=view&id=" + match[1]; } } return strUrl; }
+
+  async function login(){
+    const btn = document.getElementById("btnLoginAction");
+    try {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if(!username || !password){ alert("Username dan password wajib diisi"); return; }
+      btn.disabled = true; btn.innerText = "Memverifikasi..."; btn.style.opacity = "0.7";
+
+      const response = await fetch(`${SCRIPT_URL}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+      if (!response.ok) throw new Error("Gagal terhubung ke server");
+      const result = await response.json();
+
+      if(result.status !== "success"){ alert("Username atau password salah"); btn.disabled = false; btn.innerText = "Login"; btn.style.opacity = "1"; return; }
+
+      namaUser = result.nama; usernameLogin = username;
+      localStorage.setItem("isLogin", "true"); localStorage.setItem("usernameLogin", username); localStorage.setItem("namaUser", result.nama); localStorage.setItem("role", result.role); localStorage.setItem("jabatanUser", result.jabatan || "Pegawai PLN"); localStorage.setItem("fotoUser", result.foto || ""); localStorage.setItem("emailUser", result.email || "Belum ada email");
+      renderDashboard(result.role, result.nama, result.jabatan, result.foto, username, result.email);
+    } catch(err) { alert("Terjadi kesalahan sistem login saat mengambil data."); btn.disabled = false; btn.innerText = "Login"; btn.style.opacity = "1"; }
+  }
+
+  function renderDashboard(role, nama, jabatan, foto, nip, email) {
+    document.body.classList.add("logged-in");
+    document.getElementById("loginPage").style.display = "none";
+    if (document.getElementById("headerApp")) document.getElementById("headerApp").style.display = "block";
+
+    document.getElementById("namaPegawai").textContent = nama;
+    document.getElementById("nipPegawai").textContent = "NIP: " + (nip || usernameLogin || "-");
+    document.getElementById("jabatanPegawai").textContent = jabatan || "Pegawai PLN";
+    document.getElementById("infoNama").textContent = nama || "-";
+    document.getElementById("infoNip").textContent = nip || usernameLogin || "-";
+    document.getElementById("infoJabatan").textContent = jabatan || "Pegawai PLN";
+    document.getElementById("infoEmail").textContent = email || localStorage.getItem("emailUser") || "-";
+    
+    let inisial = "US";
+    if (nama) { let arrNama = nama.trim().split(/\s+/); if (arrNama.length >= 2) { inisial = (arrNama[0].charAt(0) + arrNama[1].charAt(0)).toUpperCase(); } else if (arrNama.length === 1) { inisial = arrNama[0].substring(0, 2).toUpperCase(); } }
+    document.getElementById("fotoInisial").textContent = inisial;
+
+    if (foto && (foto.startsWith("data:image") || foto.startsWith("http"))) {
+      const imgEl = document.getElementById("fotoPegawai");
+      let directFoto = foto.startsWith("data:image") ? foto : cleanDriveUrl(foto);
+      imgEl.src = directFoto.startsWith("data:image") ? directFoto : (directFoto.includes("?") ? directFoto + "&t=" + Date.now() : directFoto + "?t=" + Date.now());
+      imgEl.style.display = "block"; document.getElementById("fotoInisial").style.display = "none";
+    } else { document.getElementById("fotoPegawai").style.display = "none"; document.getElementById("fotoInisial").style.display = "block"; }
+
+    if(role === "admin"){
+      document.getElementById("landingNavigation").style.display = "none";
+      document.getElementById("menuUser").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      loadAdmin();
+    } else {
+      document.getElementById("landingNavigation").style.display = "flex";
+      document.getElementById("menuUser").style.display = "none";
+      document.getElementById("adminPanel").style.display = "none";
+      
+      // --- TAMBAHAN: Panggil fungsi counter di sini ---
+      loadCounterDashboard(); 
+    }
+}
+
+  function bukaGridMenu() { document.getElementById("landingNavigation").style.display = "none"; document.getElementById("menuUser").style.display = "block"; document.getElementById("backButton").style.display = "block"; }
+
+  // Hitung Form Lembur
+  function hitungSemua() {
+    const masuk = document.getElementById("jam_masuk").value;
+    const keluar = document.getElementById("jam_keluar").value;
+    const kategori = document.getElementById("kategori_lembur").value;
+    const jenis = document.getElementById("jenis_lembur").value;
+    if (!masuk || !keluar) return;
+
+    const [h1, m1] = masuk.split(':').map(Number);
+    const [h2, m2] = keluar.split(':').map(Number);
+    let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+    if (diff < 0) diff += 24 * 60; 
+
+    const totalJam = (diff / 60);
+    const istirahat = Math.floor(totalJam / 5);
+    const jamEfektif = totalJam - istirahat;
+    let x15 = 0, x2 = 0, x3 = 0, x4 = 0;
+
+    if (kategori === "HARI BIASA") { x15 = Math.min(jamEfektif, 1); x2 = Math.max(0, jamEfektif - 1); x3 = 0; } 
+    else if (kategori === "HARI LIBUR") { x15 = 0; if (jenis === "ADMIN/HAR") { x2 = Math.min(jamEfektif, 8); } else { x2 = Math.min(jamEfektif, 7); } x3 = jamEfektif >= 9 ? 1 : 0; }
+    x4 = jamEfektif - (x15 + x2 + x3); if (x4 < 0) x4 = 0; 
+
+    const formatBlank = (val) => (val === 0) ? "" : formatAngka(val);
+    document.getElementById("total_jam_kerja").value = formatAngka(totalJam) + " Jam";
+    document.getElementById("total_jam_efektif").value = formatAngka(jamEfektif) + " Jam";
+    document.getElementById("val_istirahat").value = formatBlank(istirahat);
+    document.getElementById("val_x15").value = formatBlank(x15);
+    document.getElementById("val_x2").value = formatBlank(x2);
+    document.getElementById("val_x3").value = formatBlank(x3);
+    document.getElementById("val_x4").value = formatBlank(x4);
+  }
+
+  // Load Data Menu
+  async function loadRiwayat() {
+    const loader = document.getElementById("riwayatLoading"); const body = document.getElementById("riwayatBody");
+    loader.style.display = "flex"; body.innerHTML = "";
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=riwayat&nama=${encodeURIComponent(namaUser)}`);
+      const result = await response.json(); result.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
+      let html = "";
+      result.forEach((item, index) => {
+        html += `<tr><td>${index + 1}</td><td>${new Date(item.tanggal).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</td><td>${item.kategori || "-"}</td><td>${formatJam(item.jam_masuk)}</td><td>${formatJam(item.jam_keluar)}</td><td>${formatAngka(item.total)} Jam</td><td>${formatStatus(item.status)}</td></tr>`;
+      });
+      body.innerHTML = html || "<tr><td colspan='7'>Data tidak ditemukan</td></tr>";
+    } catch(err) { body.innerHTML = "<tr><td colspan='7'>Gagal memuat data</td></tr>"; } finally { loader.style.display = "none"; }
+  }
+
+  async function loadRiwayat60() {
+    const body = document.getElementById("riwayatBody60"); const totalDisplay = document.getElementById("totalJamLembur60"); const loader = document.getElementById("riwayatLoading60");
+    if (!body) return; loader.style.display = "flex"; body.innerHTML = "";
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=riwayat60&nama=${encodeURIComponent(namaUser)}`);
+      const result = await response.json(); let html = ""; let grandTotal = 0;
+      result.forEach((item, index) => {
+        if (String(item.status).trim().toLowerCase() === 'approved') { grandTotal += parseFloat(item.total) || 0; }
+        html += `<tr><td>${index + 1}</td><td>${new Date(item.tanggal).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</td><td>${item.kategori || "-"}</td><td>${formatJam(item.jam_masuk)}</td><td>${formatJam(item.jam_keluar)}</td><td>${parseFloat(item.total).toFixed(1)} Jam</td><td>${formatStatus(item.status)}</td></tr>`;
+      });
+      body.innerHTML = html || "<tr><td colspan='7'>Data tidak ditemukan</td></tr>";
+      totalDisplay.innerText = grandTotal.toFixed(1) + " Jam";
+    } catch(err) { body.innerHTML = "<tr><td colspan='7'>Gagal memuat</td></tr>"; } finally { loader.style.display = "none"; }
+  }
+
+  async function loadTerjadwal() {
+    const body = document.getElementById("terjadwalBody"); const loader = document.getElementById("terjadwalLoading");
+    loader.style.display = "flex"; body.innerHTML = "";
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=terjadwal&nama=${encodeURIComponent(namaUser)}`);
+      const result = await response.json(); let html = "";
+      
+      let grandTotalDitampilkan = 0; 
+      let noUrut = 1;                
+
+      result.forEach((item) => {
+        const monitor = item.status_monitoring ? String(item.status_monitoring).trim().toUpperCase() : "NORMAL";
+        if (monitor === "LEMBUR_60") return; 
+
+        // AMBIL NILAI TOTAL EFEKTIF DARI SHEET
+        let totalEfektifSheet = parseFloat(item.total_efektif) || 0;
+        
+        grandTotalDitampilkan += totalEfektifSheet; 
+        let totalDisplay = totalEfektifSheet > 0 ? formatAngka(totalEfektifSheet) + ' Jam' : '-';
+        
+        html += `<tr><td>${noUrut}</td><td>${new Date(item.tanggal).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</td><td>${item.x15 || '-'}</td><td>${item.x2 || '-'}</td><td>${item.x3 || '-'}</td><td>${item.x4 || '-'}</td><td>${totalDisplay}</td><td>${formatStatus(item.status)}</td></tr>`;
+        noUrut++; 
+      });
+      
+      body.innerHTML = html || "<tr><td colspan='8'>Belum ada jadwal / Semua dialihkan ke Lembur >60</td></tr>";
+      document.getElementById("grandTotalTerjadwal").innerText = formatAngka(grandTotalDitampilkan) + " Jam";
+      
+    } catch(err) { body.innerHTML = "<tr><td colspan='8'>Gagal memuat</td></tr>"; } finally { loader.style.display = "none"; }
+  }
+
+  async function loadTidakTerjadwal() {
+    const body = document.getElementById("tidakTerjadwalBody"); const loader = document.getElementById("tidakTerjadwalLoading");
+    loader.style.display = "flex"; body.innerHTML = "";
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=tidakTerjadwal&nama=${encodeURIComponent(namaUser)}`);
+      const result = await response.json(); let html = "";
+      
+      let grandTotalDitampilkan = 0; 
+      let noUrut = 1;                
+
+      result.forEach((item) => {
+        const monitor = item.status_monitoring ? String(item.status_monitoring).trim().toUpperCase() : "NORMAL";
+        if (monitor === "LEMBUR_60") return;
+
+        // AMBIL NILAI TOTAL EFEKTIF DARI SHEET
+        let totalEfektifSheet = parseFloat(item.total_efektif) || 0;
+
+        grandTotalDitampilkan += totalEfektifSheet; 
+        let totalDisplay = totalEfektifSheet > 0 ? formatAngka(totalEfektifSheet) + ' Jam' : '-';
+        
+        html += `<tr><td>${noUrut}</td><td>${new Date(item.tanggal).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</td><td>${item.x15 || '-'}</td><td>${item.x2 || '-'}</td><td>${item.x3 || '-'}</td><td>${item.x4 || '-'}</td><td>${totalDisplay}</td><td>${formatStatus(item.status)}</td></tr>`;
+        noUrut++; 
+      });
+      
+      body.innerHTML = html || "<tr><td colspan='8'>Tidak ada data / Semua dialihkan ke Lembur >60</td></tr>";
+      document.getElementById("grandTotalTidakTerjadwal").innerText = formatAngka(grandTotalDitampilkan) + " Jam";
+      
+    } catch(err) { body.innerHTML = "<tr><td colspan='8'>Gagal memuat</td></tr>"; } finally { loader.style.display = "none"; }
+  }
+
+  async function loadAdmin(){
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=admin`); if (!response.ok) throw new Error();
+      const result = await response.json(); let html = "";
+      result.forEach(item => {
+        let aksiHtml = item.status === "Pending" ? `<div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;"><button class="action-btn" onclick="updateStatus(${item.row},'Approved')" style="background:#16a34a;">Approve</button><button class="action-btn" onclick="updateStatus(${item.row},'Rejected')" style="background:#dc2626;">Reject</button></div>` : item.status;
+        html += `<tr><td>${item.nama}</td><td style="font-size:10px; font-weight:bold; color:#2563eb;">${item.kategori}</td><td>${new Date(item.tanggal).toLocaleDateString('id-ID')}</td><td>${item.total}</td><td>${item.status}</td><td>${aksiHtml}</td></tr>`;
+      });
+      document.getElementById("adminBody").innerHTML = html || "<tr><td colspan='6'>Tidak ada pengajuan</td></tr>";
+    } catch(err) { console.error("Gagal memuat data admin:", err); }
+  }
+
+  async function updateStatus(row, status){ try { const response = await fetch(`${SCRIPT_URL}?action=updateStatus&row=${row}&status=${status}`); if (!response.ok) throw new Error(); alert("Status berhasil diupdate"); loadAdmin(); } catch(err) { alert("Gagal merubah status verifikasi."); } }
+
+  async function submitData() {
+    const deskripsiBersih = document.getElementById("deskripsi").value.trim(); 
+    const jamInput = parseFloat(document.getElementById("total_jam_efektif").value) || 0; 
+    const nip = document.getElementById("form_nip").value; 
+    const tanggal = document.getElementById("tanggal").value;
+    
+    if (!nip || !tanggal || !jamInput) { alert("Mohon lengkapi semua data form!"); return; }
+    
+    const btn = document.querySelector(".btn-submit-premium"); 
+    btn.disabled = true; 
+    btn.innerText = "Memvalidasi Data...";
+
+    try {
+      // 1. Cek Kuota
+      const resp = await fetch(`${SCRIPT_URL}?action=checkQuota&nip=${encodeURIComponent(nip)}&tanggal=${encodeURIComponent(tanggal)}`); 
+      const hasil = await resp.json();
+      if (!hasil.valid) { alert(hasil.message); btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> KIRIM PENGAJUAN'; return; }
+      
+      // 2. KIRIM DATA 
+      const data = { 
+        action: "submit", 
+        nip: nip, 
+        nama: document.getElementById("form_nama").value, 
+        tanggal: tanggal, 
+        jam_masuk: document.getElementById("jam_masuk").value, 
+        jam_keluar: document.getElementById("jam_keluar").value, 
+        kategori: document.getElementById("kategori_lembur").value, 
+        jenis: document.getElementById("jenis_lembur").value, 
+        total_kerja: document.getElementById("total_jam_kerja").value, 
+        total_efektif: document.getElementById("total_jam_efektif").value, 
+        jadwal: document.getElementById("jadwal_lembur").value, 
+        istirahat: document.getElementById("val_istirahat").value, 
+        x15: document.getElementById("val_x15").value, 
+        x2: document.getElementById("val_x2").value, 
+        x3: document.getElementById("val_x3").value, 
+        x4: document.getElementById("val_x4").value, 
+        deskripsi: deskripsiBersih 
+      };
+
+      const response = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(data) }); 
+      if (!response.ok) throw new Error("Gagal mengirim");
+
+      document.getElementById("tanggal").value = ""; 
+      document.getElementById("jam_masuk").value = ""; 
+      document.getElementById("jam_keluar").value = ""; 
+      document.getElementById("deskripsi").value = ""; 
+      document.getElementById("total_jam_kerja").value = ""; 
+      document.getElementById("total_jam_efektif").value = ""; 
+      document.getElementById("jadwal_lembur").value = "IYA"; 
+      document.getElementById("val_istirahat").value = ""; 
+      document.getElementById("val_x15").value = ""; 
+      document.getElementById("val_x2").value = ""; 
+      document.getElementById("val_x3").value = ""; 
+      document.getElementById("val_x4").value = "";
+
+      hideSemuaSection(); 
+      document.getElementById("successMessage").style.display = "block"; 
+      document.getElementById("backButton").style.display = "block"; 
+      loadRiwayat();
+    } catch(err) { alert("Gagal sinkronisasi data: " + err.message); } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> KIRIM PENGAJUAN'; }
+}
+
+  // Windows Control
+  function hideSemuaSection(){ document.getElementById("landingNavigation").style.display = "none"; document.getElementById("menuUser").style.display = "none"; document.getElementById("infoPegawaiSection").style.display = "none"; document.getElementById("formLembur").style.display = "none"; document.getElementById("riwayatSection").style.display = "none"; document.getElementById("lembur60Section").style.display = "none"; document.getElementById("terjadwalSection").style.display = "none"; document.getElementById("tidakTerjadwalSection").style.display = "none"; document.getElementById("successMessage").style.display = "none"; }
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    window.showInfoPegawai = function() { hideSemuaSection(); document.getElementById("backButton").style.display = "block"; document.getElementById("infoPegawaiSection").style.display = "block"; };
+    window.showFormLembur = function() { hideSemuaSection(); document.getElementById("backButton").style.display = "block"; document.getElementById("formLembur").style.display = "block"; document.getElementById("form_nip").value = localStorage.getItem("usernameLogin") || "-"; document.getElementById("form_nama").value = localStorage.getItem("namaUser") || "-"; };
+    window.showRiwayat = function() { hideSemuaSection(); document.getElementById("backButton").style.display = "block"; document.getElementById("riwayatSection").style.display = "block"; loadRiwayat(); };
+    window.showLembur60 = function() { hideSemuaSection(); document.getElementById("backButton").style.display = "block"; document.getElementById("lembur60Section").style.display = "block"; loadRiwayat60(); };
+    window.showTerjadwal = function() { hideSemuaSection(); document.getElementById("backButton").style.display = "block"; document.getElementById("terjadwalSection").style.display = "block"; loadTerjadwal(); };
+    window.showTidakTerjadwal = function() { hideSemuaSection(); document.getElementById("backButton").style.display = "block"; document.getElementById("tidakTerjadwalSection").style.display = "block"; loadTidakTerjadwal(); };
+  });
+
+  function kembaliMenu(){ 
+  if (document.getElementById("menuUser").style.display === "block") { 
+    hideSemuaSection(); 
+    document.getElementById("landingNavigation").style.display = "flex"; 
+    document.getElementById("backButton").style.display = "none"; 
+  } else { 
+    hideSemuaSection(); 
+    document.getElementById("menuUser").style.display = "block"; 
+    document.getElementById("backButton").style.display = "block"; 
+  }
+  // Refresh counter setiap kali kembali ke menu utama
+  loadCounterDashboard(); 
+}
+  function logout(){ localStorage.clear(); if(document.getElementById("username")) document.getElementById("username").value = ""; if(document.getElementById("password")) document.getElementById("password").value = ""; if(document.getElementById("formLoginUtama")) document.getElementById("formLoginUtama").reset(); const btnLogin = document.getElementById("btnLoginAction"); if (btnLogin) { btnLogin.disabled = false; btnLogin.innerText = "Login"; btnLogin.style.opacity = "1"; } namaUser = ""; usernameLogin = ""; eksekusiTampilanGagalLogin(); }
+  function eksekusiTampilanGagalLogin() { document.body.classList.remove("logged-in"); if(document.getElementById("headerApp")) document.getElementById("headerApp").style.display = "none"; if(document.getElementById("loginPage")) document.getElementById("loginPage").style.display = "block"; hideSemuaSection(); }
+
+  window.onload = function(){
+    if(localStorage.getItem("isLogin") !== "true") { eksekusiTampilanGagalLogin(); return; }
+    namaUser = localStorage.getItem("namaUser"); usernameLogin = localStorage.getItem("usernameLogin");
+    renderDashboard(localStorage.getItem("role"), namaUser, localStorage.getItem("jabatanUser"), localStorage.getItem("fotoUser"), usernameLogin, localStorage.getItem("emailUser"));
+  };
+
+  async function uploadFoto(){
+    const input = document.getElementById("fileInputFoto"); const file = input.files[0]; const containerBox = document.getElementById("avatarContainerBox"); const overlayText = document.querySelector("#overlayLoadingText span");
+    try {
+      if(!file) return; if(!file.type.startsWith("image/")){ alert("File harus berupa gambar"); return; } if(file.size > 2 * 1024 * 1024){ alert("Maksimal 2MB"); return; }
+      overlayText.innerText = "Sinc..."; containerBox.style.pointerEvents = "none"; const reader = new FileReader();
+      reader.onload = function(e){
+        const img = new Image();
+        img.onload = async function(){
+          try {
+            const canvas = document.createElement("canvas"); const ctx = canvas.getContext("2d"); let width = img.width; let height = img.height; const maxWidth = 300;
+            if(width > maxWidth){ height = height * (maxWidth / width); width = maxWidth; }
+            canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
+            const response = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "uploadFoto", username: usernameLogin, nama: namaUser, image: canvas.toDataURL("image/jpeg", 0.7) }) });
+            if (!response.ok) throw new Error("Gagal"); const result = await response.json();
+            if(result.status === "success" && result.url){ localStorage.setItem("fotoUser", result.url); document.getElementById("fotoPegawai").src = result.url; document.getElementById("fotoPegawai").style.display = "block"; document.getElementById("fotoInisial").style.display = "none"; alert("Foto berhasil diperbarui!"); } else { alert(result.message); }
+          } catch(err) { alert("Gagal mengunggah"); } finally { overlayText.innerText = "Ganti Foto"; containerBox.style.pointerEvents = "auto"; input.value = ""; }
+        }; img.src = e.target.result;
+      }; reader.readAsDataURL(file);
+    } catch(err) { alert("Error"); overlayText.innerText = "Ganti Foto"; containerBox.style.pointerEvents = "auto"; }
+  }
+
+  // FUNGSI BARU: Memanggil data total ke dashboard
+  async function loadCounterDashboard() {
+    const counterEl = document.getElementById("counterTotalJam");
+    if (!counterEl || !namaUser) return;
+    
+    // Tampilkan loading spinner kecil saat mengambil data
+    counterEl.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 14px;"></i>';
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=getCounterDashboard&nama=${encodeURIComponent(namaUser)}`);
+      const result = await response.json();
+      
+      let val = parseFloat(result.total) || 0;
+      // Jika angkanya desimal (misal 14.5), tampilkan 1 di belakang koma. Jika bulat (14), tampilkan utuh.
+      let displayVal = (val % 1 === 0) ? val : val.toFixed(1); 
+      
+      counterEl.innerText = displayVal;
+    } catch (err) {
+      counterEl.innerText = "!";
+    }
+  }
+</script>
+</body>
+</html>

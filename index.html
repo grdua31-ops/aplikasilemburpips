@@ -904,8 +904,83 @@
   // Reset & Login Logics
   function handleLupaPassword(event) { if (event) event.preventDefault(); document.getElementById("loginPage").style.display = "none"; document.getElementById("resetPage").style.display = "block"; }
   function kembaliKeLogin(event) { if (event) event.preventDefault(); document.getElementById("resetPage").style.display = "none"; document.getElementById("loginPage").style.display = "block"; document.getElementById("stepMintaToken").style.display = "block"; document.getElementById("stepVerifikasiToken").style.display = "none"; document.getElementById("resetUsername").value = ""; document.getElementById("resetToken").value = ""; document.getElementById("resetNewPassword").value = ""; }
-  function mintaKodeToken() { const username = document.getElementById("resetUsername").value.trim(); if (!username) { alert("Harap masukkan Username Anda!"); return; } const btn = document.getElementById("btnMintaTokenAction"); btn.disabled = true; btn.textContent = "Memproses & Mengirim..."; const timeoutForce = setTimeout(() => { if (btn.textContent === "Memproses & Mengirim...") { btn.disabled = false; btn.textContent = "Kirim Kode Konfirmasi"; alert("Koneksi server tidak merespons. Silakan coba klik kembali."); } }, 10000); google.script.run.withSuccessHandler(function(respon) { clearTimeout(timeoutForce); btn.disabled = false; btn.textContent = "Kirim Kode Konfirmasi"; if (respon.sukses) { document.getElementById("stepMintaToken").style.display = "none"; document.getElementById("stepVerifikasiToken").style.display = "block"; document.getElementById("resetInstruction").textContent = "Masukkan kode token yang diterima di email dan tentukan password baru."; } else { alert("Gagal: " + respon.pesan); } }).withFailureHandler(function(error) { clearTimeout(timeoutForce); btn.disabled = false; btn.textContent = "Kirim Kode Konfirmasi"; alert("Terjadi kesalahan sistem: " + error.message); }).kirimTokenReset(username); }
-  function prosesResetPassword() { const username = document.getElementById("resetUsername").value.trim(); const token = document.getElementById("resetToken").value.trim(); const passwordBaru = document.getElementById("resetNewPassword").value.trim(); if (!token || !passwordBaru) { alert("Harap isi Kode Token dan Password Baru Anda!"); return; } const btn = document.getElementById("btnResetAction"); btn.disabled = true; btn.textContent = "Mengupdate Password..."; google.script.run.withSuccessHandler(function(respon) { btn.disabled = false; btn.textContent = "Update Password"; alert(respon.pesan); if (respon.sukses) { kembaliKeLogin(); } }).withFailureHandler(function(error) { btn.disabled = false; btn.textContent = "Update Password"; alert("Terjadi kesalahan sistem: " + error.message); }).verifikasiDanUpdatePassword(username, token, passwordBaru); }
+  // Fungsi baru minta kode token menggunakan Fetch API
+  async function mintaKodeToken() { 
+    const username = document.getElementById("resetUsername").value.trim(); 
+    if (!username) { 
+      alert("Harap masukkan Username Anda!"); 
+      return; 
+    } 
+
+    const btn = document.getElementById("btnMintaTokenAction"); 
+    btn.disabled = true; 
+    btn.textContent = "Memproses & Mengirim..."; 
+
+    try {
+      // Menggunakan fetch ke SCRIPT_URL (Sama seperti fungsi Login)
+      const response = await fetch(`${SCRIPT_URL}?action=kirimToken&username=${encodeURIComponent(username)}`);
+      if (!response.ok) throw new Error("Gagal terhubung ke server");
+      const respon = await response.json();
+
+      btn.disabled = false; 
+      btn.textContent = "Kirim Kode Konfirmasi"; 
+
+      if (respon.sukses) { 
+        document.getElementById("stepMintaToken").style.display = "none"; 
+        document.getElementById("stepVerifikasiToken").style.display = "block"; 
+        document.getElementById("resetInstruction").textContent = "Masukkan kode token yang diterima di email dan tentukan password baru."; 
+      } else { 
+        alert("Gagal: " + respon.pesan); 
+      }
+    } catch (error) {
+      btn.disabled = false; 
+      btn.textContent = "Kirim Kode Konfirmasi"; 
+      alert("Terjadi kesalahan sistem: " + error.message);
+    }
+  }
+  // Fungsi baru proses reset password menggunakan Fetch API
+  async function prosesResetPassword() { 
+    const username = document.getElementById("resetUsername").value.trim(); 
+    const token = document.getElementById("resetToken").value.trim(); 
+    const passwordBaru = document.getElementById("resetNewPassword").value.trim(); 
+    
+    if (!token || !passwordBaru) { 
+      alert("Harap isi Kode Token dan Password Baru Anda!"); 
+      return; 
+    } 
+
+    const btn = document.getElementById("btnResetAction"); 
+    btn.disabled = true; 
+    btn.textContent = "Mengupdate Password..."; 
+
+    try {
+      // Mengirim data menggunakan POST agar lebih aman untuk password
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "prosesReset",
+          username: username,
+          token: token,
+          passwordBaru: passwordBaru
+        })
+      });
+
+      if (!response.ok) throw new Error("Gagal terhubung ke server");
+      const respon = await response.json();
+
+      btn.disabled = false; 
+      btn.textContent = "Update Password"; 
+      alert(respon.pesan); 
+
+      if (respon.sukses) { 
+        kembaliKeLogin(); 
+      }
+    } catch (error) {
+      btn.disabled = false; 
+      btn.textContent = "Update Password"; 
+      alert("Terjadi kesalahan sistem: " + error.message);
+    }
+  }
 
   function handleFotoError() { document.getElementById("fotoPegawai").style.display = "none"; document.getElementById("fotoInisial").style.display = "block"; }
   function cleanDriveUrl(url) { if (!url || url === "" || url === "null" || url === "undefined") return ""; let strUrl = String(url); if (strUrl.includes("drive.google.com")) { let match = strUrl.match(/\/d\/([^/]+)/) || strUrl.match(/id=([^&]+)/); if (match && match[1]) { return "https://docs.google.com/uc?export=view&id=" + match[1]; } } return strUrl; }
@@ -1245,28 +1320,6 @@
     }
   }
 
-  // Fungsi yang kita buat tadi
-  function loadDataTabel() {
-    google.script.run.withSuccessHandler(function(data) {
-      // 1. Ambil elemen tabel Anda
-      var tabelBody = document.getElementById("body-tabel-lembur");
-      tabelBody.innerHTML = ""; // Bersihkan isi lama
-
-      // 2. Loop data yang dikirim dari kode.gs
-      data.forEach(function(row) {
-        var tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row[0]}</td>
-          <td>${row[1]}</td>
-          <td>${row[2]}</td>
-        `;
-        tabelBody.appendChild(tr);
-      });
-    }).getDataLembur();
-  }
-
-  // Panggil fungsi saat halaman selesai dimuat
-  window.onload = loadDataTabel;
 </script>
 </body>
 </html>

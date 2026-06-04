@@ -33,27 +33,141 @@
     button:hover, .btn-primary:hover, #btnLoginAction:hover, #btnMintaTokenAction:hover, #btnResetAction:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3); }
     button:active, .btn-primary:active, #btnLoginAction:active, #btnMintaTokenAction:active, #btnResetAction:active { transform: translateY(0); box-shadow: 0 2px 5px rgba(37, 99, 235, 0.2); }
 
-    .header-top { display: flex; justify-content: space-between; gap: 15px; align-items: flex-start; animation: textSlideIn 0.4s ease forwards; }
-    .app-title { color: #1e40af; font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
-    .app-subtitle { color: #64748b; line-height: 1.4; font-size: 13px; display: inline-block; margin-top: 2px; }
-    .custom-logo-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; }
-    .header-mascot { width: 75px; height: 75px; object-fit: contain; transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; animation: floatMascot 4s ease-in-out infinite; }
+    /* Header Container */
+    .header-top { 
+        display: flex; 
+        justify-content: space-between; 
+        /* Ganti ke flex-start agar judul dan maskot sejajar di bagian atas */
+        align-items: flex-start; 
+        gap: 15px; 
+        animation: textSlideIn 0.4s ease forwards;
+        /* Tambahkan sedikit margin-bottom agar tidak terlalu rapat dengan kotak profil */
+        margin-bottom: 20px; 
+    }
+
+    /* 1. Judul dengan warna Navy BUMN */
+    .app-title { 
+        color: #003366; /* Warna Navy yang dalam dan profesional */
+        font-size: 26px; 
+        font-weight: 800; 
+        letter-spacing: -0.5px; 
+        line-height: 1; 
+        margin: 0; 
+    }
+
+    .app-subtitle { 
+        color: #64748b; 
+        line-height: 1.3; 
+        font-size: 11px; 
+        display: block; 
+        margin-top: 4px; /* Memberi jarak tipis dari judul ke sub-judul */
+        white-space: normal; 
+        margin-bottom: 0; /* Pastikan tidak ada spasi bawah yang berlebih */
+    }
+
+    /* Maskot yang sudah diperbaiki */
+    .header-mascot { 
+        width: 50px; 
+        height: 50px; 
+        object-fit: contain; 
+        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        cursor: pointer; 
+        animation: floatMascot 4s ease-in-out infinite; 
+        margin-top: 5px; /* <--- TAMBAHKAN INI: Menggeser maskot ke bawah agar sejajar */
+    }
+    
     .header-mascot:hover { transform: scale(1.12) rotate(5deg); filter: drop-shadow(0 8px 15px rgba(15, 23, 42, 0.15)); }
     .header-mascot:active { transform: scale(0.95) rotate(-3deg); }
-    .header-date-badge { font-size: 10px; font-weight: 700; color: #0284c7; background: #f0f5ff; padding: 4px 8px; border-radius: 6px; border: 1px solid #bfdbfe; white-space: nowrap; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03); }
+
+.custom-logo-placeholder { 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: flex-start; 
+        position: relative; /* Kunci agar tanggal bisa digeser ke posisi sub-judul */
+        width: 80px;
+        flex-shrink: 0;
+    }
+
+    /* 2. Badge Tanggal dengan aksen PLN Electric Blue */
+    .header-date-badge { 
+        font-size: 8px; 
+        font-weight: 700; 
+        color: #0077b6; /* Biru cerah khas energi listrik */
+        background: #e1f5fe; /* Background biru sangat muda */
+        padding: 2px 8px; 
+        border-radius: 50px; 
+        border: 1px solid #b3e5fc; /* Border senada */
+        white-space: nowrap; 
+        box-shadow: 0 1px 2px rgba(0, 119, 182, 0.1); /* Shadow kebiruan */
+        text-transform: uppercase;
+        
+        position: absolute; 
+        top: 55px; 
+        left: 50%;
+        transform: translateX(-65%); /* Sesuaikan ke kiri agar pas */
+        width: max-content;
+    }
+    
     @keyframes floatMascot { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
 
-    .profile-card { display: flex; gap: 18px; align-items: center; background: linear-gradient(135deg, #0284c7, #0369a1); padding: 22px 20px; border-radius: 20px; margin-top: 20px; color: white; box-shadow: 0 10px 20px rgba(2, 132, 199, 0.2); animation: containerAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; overflow: hidden; }
-    .profile-card::after { content: ''; position: absolute; top: -50%; left: -60%; width: 30%; height: 200%; background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.18) 50%, rgba(255, 255, 255, 0) 100%); transform: rotate(25deg); animation: profileShimmer 6s ease-in-out infinite; }
-    @keyframes profileShimmer { 0% { left: -60%; } 15%, 100% { left: 140%; } }
-    
     /* ========================================= */
-    /* CSS UNTUK COUNTER LEMBUR (LINGKARAN KANAN)*/
+    /* BAGIAN PROFILE CARD DAN COUNTER LEMBUR    */
     /* ========================================= */
-    .counter-lembur { position: absolute; top: 18px; right: 18px; width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #ffffff; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; cursor: default; z-index: 10; }
-    .counter-lembur:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
-    /* ========================================= */
+    .profile-card { 
+        display: flex; 
+        gap: 18px; 
+        align-items: center; 
+        background: linear-gradient(135deg, #0284c7, #0369a1); 
+        padding: 22px 20px; /* Padding normal agar ruang teks luas */
+        border-radius: 20px; 
+        margin-top: 20px; 
+        color: white; 
+        box-shadow: 0 10px 20px rgba(2, 132, 199, 0.2); 
+        position: relative; 
+        overflow: hidden; 
+    }
 
+    .profile-card::after { 
+        content: ''; 
+        position: absolute; 
+        top: -50%; left: -60%; width: 30%; height: 200%; 
+        background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.18) 50%, rgba(255, 255, 255, 0) 100%); 
+        transform: rotate(25deg); 
+        animation: profileShimmer 6s ease-in-out infinite; 
+    }
+    @keyframes profileShimmer { 0% { left: -60%; } 15%, 100% { left: 140%; } }
+
+    .counter-lembur { 
+        position: absolute; 
+        top: 18px; /* Menempel di atas */
+        right: 18px; /* Menempel di kanan */
+        width: 48px; 
+        height: 48px; 
+        border-radius: 50%; 
+        border: 1px solid rgba(255, 255, 255, 0.4); 
+        background: rgba(255, 255, 255, 0.15); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 16px; 
+        font-weight: 800; 
+        color: #ffffff; 
+        backdrop-filter: blur(4px); 
+        -webkit-backdrop-filter: blur(4px); 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+        transition: all 0.3s ease;
+        z-index: 10; 
+        cursor: default;
+    }
+
+    .counter-lembur:hover { 
+        background: rgba(255, 255, 255, 0.25); 
+        transform: scale(1.08); 
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15); 
+    }
+
+    /* BAGIAN AVATAR DAN INFO TEKS */
     .profile-left-box { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
     .avatar-container { width: 76px; height: 76px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.3); background: white; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
     .profile-img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: none; }
@@ -61,8 +175,19 @@
     .avatar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; }
     .avatar-overlay span { color: white; font-size: 11px; font-weight: bold; text-align: center; }
     .avatar-container:hover .avatar-overlay { opacity: 1; }
+
     .profile-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-    .profile-name { font-size: 20px; font-weight: 700; line-height: 1.2; word-wrap: break-word; }
+    
+    .profile-name { 
+        font-size: clamp(13px, 4vw, 20px); /* Batas minimal font diturunkan menjadi 13px agar bisa menyusut di HP */
+        font-weight: 700; 
+        line-height: 1.2; 
+        white-space: nowrap; /* Memaksa teks memanjang dalam 1 baris */
+        overflow: hidden; /* Menahan teks agar tidak tumpah */
+        text-overflow: ellipsis; /* Beri titik-titik (...) hanya jika layar HP benar-benar sangat sempit */
+        padding-right: 50px; /* Jarak aman lingkaran di PC */
+    }
+    
     .profile-nip { font-size: 13px; opacity: 0.85; font-weight: 500; }
     .profile-job { font-size: 12px; opacity: 0.95; font-weight: 500; background: rgba(255, 255, 255, 0.15); padding: 4px 10px; border-radius: 6px; margin-top: 4px; line-height: 1.4; display: inline-block; align-self: flex-start; max-width: 100%; word-wrap: break-word; box-sizing: border-box; }
 
@@ -108,9 +233,15 @@
       .profile-card { padding: 16px 14px; gap: 12px; }
       .avatar-container { width: 68px; height: 68px; }
       .avatar-text { font-size: 22px; }
-      .profile-name { font-size: 16px; }
+      
+      /* Pengaturan khusus untuk HP agar teks mengecil dan aman */
+      .profile-name { padding-right: 45px; } 
+      
       .profile-job { font-size: 11px; padding: 4px 8px; }
-      .counter-lembur { width: 42px; height: 42px; font-size: 14px; top: 15px; right: 15px; } /* Sesuaikan ukuran untuk HP */
+      
+      /* Posisi lingkaran di HP dibuat menempel ke pojok atas kanan */
+      .counter-lembur { width: 42px; height: 42px; font-size: 14px; top: 12px; right: 12px; }
+      
       .landing-nav-container { gap: 12px; margin: 20px 0 5px 0; }
       .menu-grid-container { gap: 15px; margin-top: 15px; }
       .menu-icon { font-size: 36px; }
@@ -245,14 +376,35 @@
 
     .id-card-premium { background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 24px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.03); position: relative; overflow: hidden; }
     .id-card-premium::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #2563eb, #38bdf8); }
-    .info-row { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px dashed #cbd5e1; }
+    .info-row { 
+        display: flex; 
+        align-items: flex-start; /* Ubah ke flex-start agar tidak memotong elemen */
+        gap: 16px; 
+        padding: 14px 0; 
+        border-bottom: 1px dashed #cbd5e1; 
+    }
     .info-row:last-child { border-bottom: none; padding-bottom: 0; }
     .info-row:first-child { padding-top: 0; }
     .info-icon { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background: #f0f9ff; color: #0284c7; border-radius: 12px; font-size: 18px; flex-shrink: 0; transition: transform 0.3s ease; }
     .info-row:hover .info-icon { transform: scale(1.1); background: #e0f2fe; }
-    .info-data { display: flex; flex-direction: column; gap: 4px; }
+    .info-data { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 2px; 
+        min-width: 0; /* Penting: Mengizinkan teks mengecil di dalam flex container */
+        width: 100%;  /* Mengisi ruang yang tersedia */
+    }
     .info-label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-    .info-value { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .info-value { 
+        font-size: 14px; /* Sedikit diperkecil agar lebih pas di HP */
+        font-weight: 700; 
+        color: #0f172a; 
+        word-wrap: break-word; /* Memecah kata panjang seperti email */
+        overflow-wrap: break-word; /* Standar modern untuk memecah teks */
+        hyphens: auto; /* Membantu memotong kata dengan tanda hubung jika perlu */
+        white-space: normal; /* Memastikan teks bisa pindah baris */
+        line-height: 1.4;
+    }
 
     .tip-box { margin-top: 20px; background: #fffbeb; border: 1px solid #fde68a; padding: 14px 16px; border-radius: 12px; display: flex; gap: 12px; align-items: flex-start; font-size: 12px; color: #92400e; line-height: 1.5; box-shadow: 0 4px 6px rgba(217, 119, 6, 0.05); }
     .loading-spinner { display: flex; justify-content: center; padding: 30px; gap: 10px; color: #2563eb; }
@@ -270,7 +422,7 @@
     .search-input { width: 100%; padding: 12px 16px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; }
     .table-scroll-wrapper { max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 12px; }
     .table-premium thead th { position: sticky; top: 0; z-index: 1; background-color: #2563eb; }
-</style>
+  </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -1092,6 +1244,29 @@
       counterEl.innerText = "!";
     }
   }
+
+  // Fungsi yang kita buat tadi
+  function loadDataTabel() {
+    google.script.run.withSuccessHandler(function(data) {
+      // 1. Ambil elemen tabel Anda
+      var tabelBody = document.getElementById("body-tabel-lembur");
+      tabelBody.innerHTML = ""; // Bersihkan isi lama
+
+      // 2. Loop data yang dikirim dari kode.gs
+      data.forEach(function(row) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row[0]}</td>
+          <td>${row[1]}</td>
+          <td>${row[2]}</td>
+        `;
+        tabelBody.appendChild(tr);
+      });
+    }).getDataLembur();
+  }
+
+  // Panggil fungsi saat halaman selesai dimuat
+  window.onload = loadDataTabel;
 </script>
 </body>
 </html>
